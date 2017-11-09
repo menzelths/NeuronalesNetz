@@ -5,11 +5,18 @@
  */
 package neuronalesnetz;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -53,10 +60,12 @@ public class NeuronalesNetz {
 
             // zufälligen Vergleichsvektor erstellen, später aus Trainingsdaten
             Matrix sollWert = new Matrix(knotenProSchicht[knotenProSchicht.length - 1], 1, x -> zufall.nextGaussian());
+            
             int datensatzZähler=0;
             try {
                 BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\menze\\Documents\\MNIST-Daten\\mnist_train.csv"));
-
+                
+                
                 String zeile = "";
                 while ((zeile = br.readLine()) != null) {
                     datensatzZähler++;
@@ -110,11 +119,7 @@ public class NeuronalesNetz {
 
                         //System.out.println("Davor:\n" + netz.get(aktuelleSchicht - 1));
                         netz.set(aktuelleSchicht - 1, netz.get(aktuelleSchicht - 1).plus(differenzMatrix));
-                        // diese Differenzmatrix zu aktueller Matrix hinzuzählen
-                        //System.out.println("Danach:\n" + netz.get(aktuelleSchicht - 1));
-
-                        //System.out.println("Differenzmatrix " + aktuelleSchicht + ":\n" + differenzMatrix);
-                        //System.out.println("Ausgabe letzte Schicht in Epoche "+epoche+":\n"+schichtAusgabe);
+                       
                     }
                 }
             } catch (Exception e) {
@@ -122,10 +127,15 @@ public class NeuronalesNetz {
             }
         //}
         System.out.println("Fertig! Trainiert mit "+datensatzZähler+" Datensätzen!");
-        
+        int offset=2;
         try {
+                BufferedImage bi=new BufferedImage(100*(28+offset),100*56,BufferedImage.TYPE_INT_ARGB);
                 BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\menze\\Documents\\MNIST-Daten\\mnist_test.csv"));
-
+                Graphics g=bi.getGraphics();
+                g.setColor(Color.WHITE);
+                g.fillRect(0,0,100*(28+offset),100*56);
+                g.setFont(new Font("Arial",Font.PLAIN,20));
+                
                 String zeile = "";
                 int zaehlerKorrekt=0;
                 int zaehlerGesamt=0;
@@ -142,8 +152,14 @@ public class NeuronalesNetz {
 
                     double[] eingangsWerte = new double[datenwerte.length - 1];
                     for (int i = 1; i < datenwerte.length; i++) {
+                        int farbwert=255-Integer.parseInt(datenwerte[i]);
                         eingangsWerte[i - 1] = Double.parseDouble(datenwerte[i]) / 255 * 0.99 + 0.01;
+                        g.setColor(new Color(farbwert,farbwert,farbwert));
+                        int x=(zaehlerGesamt%100)*(28+offset)+i%28;
+                        int y=(zaehlerGesamt/100)*56+i/28;
+                        g.drawLine(x, y, x+1, y+1);
                     }
+                    
 
                     schichtAusgabe = new Matrix(eingangsWerte, 1);
                     
@@ -163,18 +179,20 @@ public class NeuronalesNetz {
                                     }
                                     
                                 }
+                                g.setColor(Color.red);
                                 if (index==zahl){
                                     zaehlerKorrekt++;
-                                    //System.out.println(" OK");
-                                } else {
-                                    //System.out.println(" --");
-                                }
+                                    g.setColor(Color.green);
+                                } 
+                                g.drawString(""+index, (zaehlerGesamt%100)*(28+offset)+9, (zaehlerGesamt/100)*56+45);
                                 zaehlerGesamt++;
                 }
+                ImageIO.write(bi, "png", new File("D:\\test.png"));
+                
                 
                 System.out.println("Trefferquote: "+((double)zaehlerKorrekt/zaehlerGesamt)+" bei "+zaehlerGesamt+" Datensätzen");
         } catch(Exception e){
-            
+            e.printStackTrace();
         }
         
 
