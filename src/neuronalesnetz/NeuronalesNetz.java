@@ -13,9 +13,12 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 /**
@@ -193,6 +196,52 @@ public class NeuronalesNetz {
                 System.out.println("Trefferquote: "+((double)zaehlerKorrekt/zaehlerGesamt)+" bei "+zaehlerGesamt+" Datensätzen");
         } catch(Exception e){
             e.printStackTrace();
+        }
+        
+        // Neuronales Netz rückwärts durchlaufen, um die Bilder anzuzeigen
+        double[] ausgabeWerte=new double[10];
+        Matrix zwischenwert=null;
+        BufferedImage bi=new BufferedImage((28+2)*10,30,BufferedImage.TYPE_INT_ARGB);
+        Graphics g=bi.getGraphics();
+        g.setColor(Color.white);
+        g.fillRect(0, 0, (28+2)*10, 30);
+        
+        for (int i=0;i<10;i++){
+            for (int j=0;j<10;j++){
+                ausgabeWerte[j]=0.01;
+            }
+            ausgabeWerte[i]=0.99;
+            
+            zwischenwert=new Matrix(ausgabeWerte,1);
+            for (int j=netz.size()-1;j>=0;j--){
+                zwischenwert=netz.get(j).transponiert().mal(zwischenwert.punktWeise(Matrix::logit));
+                // skalieren auf maximalen Bereich
+                double min=zwischenwert.werte[0];
+                double max=min;
+                for (int k=0;k<zwischenwert.werte.length;k++){
+                    min=min>zwischenwert.werte[k]?zwischenwert.werte[k]:min;
+                    max=max<zwischenwert.werte[k]?zwischenwert.werte[k]:max;                
+                }
+                final double minimum=min;
+                final double maximum=max;
+                zwischenwert=zwischenwert.punktWeise(x->x-minimum).punktWeise(x->x/(maximum-minimum)*0.98+0.01);
+               
+            }
+            
+            
+            
+            for (int j=0;j<zwischenwert.zeilenZahl;j++){
+                int farbwert=255-(int)(zwischenwert.get(j, 0)*255);
+                g.setColor(new Color(farbwert,farbwert,farbwert));
+                g.drawLine(i*(28+2)+j%28, 1+j/28,i*(28+2)+j%28, 1+j/28);
+            }
+            
+        }
+        
+        try {
+            ImageIO.write(bi, "png", new File("D:\\netzbild.png"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
         
 

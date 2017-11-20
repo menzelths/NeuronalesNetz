@@ -20,6 +20,10 @@ public class Matrix {
         return 1/(1+Math.exp(-x));
     }
     
+    public static Double logit(Double x){
+        return Math.log(x/(1-x));
+    }
+    
 
     public Matrix(double[] werte, int spalten) {
         this.werte = werte;
