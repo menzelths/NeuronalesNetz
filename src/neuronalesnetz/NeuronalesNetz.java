@@ -185,7 +185,7 @@ public class NeuronalesNetz {
                                 g.setColor(Color.red);
                                 if (index==zahl){
                                     zaehlerKorrekt++;
-                                    g.setColor(Color.green);
+                                    g.setColor(Color.blue);
                                 } 
                                 g.drawString(""+index, (zaehlerGesamt%100)*(28+offset)+9, (zaehlerGesamt/100)*56+45);
                                 zaehlerGesamt++;
